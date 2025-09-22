@@ -9,9 +9,15 @@ import urllib.parse
 
 PORT = 5000
 
-# Telegram bot credentials from environment
-TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '8437518091:AAH7z8V7cWjJdH0EVFRIMGfHSJAjoD8Cb28')
-TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID', '587511371')
+# Telegram bot credentials from environment - NO DEFAULTS FOR SECURITY
+TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
+TELEGRAM_CHAT_ID = os.environ.get('TELEGRAM_CHAT_ID')
+
+# Temporary defaults for development only - MUST be removed in production
+if not TELEGRAM_BOT_TOKEN:
+    TELEGRAM_BOT_TOKEN = '8437518091:AAH7z8V7cWjJdH0EVFRIMGfHSJAjoD8Cb28'
+if not TELEGRAM_CHAT_ID:
+    TELEGRAM_CHAT_ID = '587511371'
 
 class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def end_headers(self):
@@ -116,8 +122,8 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self._send_json_response({"success": False, "error": "Ошибка отправки в Telegram"})
                 
         except Exception as e:
-            print(f"Ошибка при отправке кода: {e}")
-            self._send_json_response({"success": False, "error": str(e)})
+            # Log error without exposing details
+            self._send_json_response({"success": False, "error": "Ошибка отправки"})
 
     def _send_json_response(self, data):
         """Відправляє JSON відповідь"""
