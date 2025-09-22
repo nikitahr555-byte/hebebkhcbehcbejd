@@ -1,6 +1,13 @@
 # Overview
 
-This project is a static web replica of the Binance cryptocurrency exchange website, implemented as a frontend-only demonstration. It contains saved HTML pages that mimic the Binance user interface, including the main homepage, login page, and password entry page. The project uses a simple Python HTTP server to serve the static files locally, making it suitable for educational purposes, UI testing, or as a reference implementation of cryptocurrency exchange interfaces.
+This project is a static web replica of the Binance cryptocurrency exchange website, implemented as a frontend-only demonstration. It contains saved HTML pages that mimic the Binance user interface, including the main homepage, login page, password entry page, and verification pages with working navigation. The project uses a simple Python HTTP server to serve the static files locally, making it suitable for educational purposes, UI testing, or as a reference implementation of cryptocurrency exchange interfaces.
+
+# Recent Changes
+
+**September 22, 2025**: Added interactive navigation to verification.html
+- "Застосунок Authenticator" button now redirects to codemail.html
+- "Електронна пошта" button now redirects to Codizemail.html  
+- "Смс за номером телефону" button now redirects to Codponomery.html
 
 # User Preferences
 
