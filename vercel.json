@@ -1,22 +1,17 @@
 {
-  "version": 2,
   "functions": {
-    "api/*.py": {
+    "api/server.py": {
       "runtime": "python3.9"
     }
   },
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/send-code",
-      "dest": "/api/server.py"
+      "source": "/api/send-code",
+      "destination": "/api/server.py"
     },
     {
-      "src": "/bapi/(.*)",
-      "dest": "/api/server.py"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "source": "/bapi/(.*)",
+      "destination": "/api/server.py"
     }
   ],
   "env": {
