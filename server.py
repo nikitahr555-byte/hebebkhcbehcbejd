@@ -28,18 +28,15 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.path = '/index.html'
             return
         
-        # Убираем префикс /uk-UA/ если он есть
+        # Убираем префикс /uk-UA/ если он есть и перенаправляем на корневые ресурсы
         if self.path.startswith('/uk-UA/'):
             new_path = self.path[7:]  # Убираем "/uk-UA/"
             
-            # Для основных HTML файлов
-            if new_path in ['login.html', 'password.html', 'index.html']:
-                self.path = '/' + new_path
             # Для пустого пути после uk-UA
-            elif new_path == '' or new_path == '/':
+            if new_path == '' or new_path == '/':
                 self.path = '/index.html'
-            # Для всех остальных ресурсов (CSS, JS, изображения и т.д.)
             else:
+                # Для всех ресурсов просто убираем префикс uk-UA
                 self.path = '/' + new_path
 
 if __name__ == "__main__":
