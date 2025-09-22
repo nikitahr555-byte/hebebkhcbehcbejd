@@ -26,8 +26,6 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         if self.path == '/':
             self.path = '/index.html'
         
-        # Обрабатываем украинские языковые пути
-        elif self.path.startswith('/uk-UA/'):
             # Убираем префикс /uk-UA/ и перенаправляем на корневые файлы
             new_path = self.path[7:]  # Убираем "/uk-UA/"
             if new_path in ['login.html', 'password.html', 'index.html']:
