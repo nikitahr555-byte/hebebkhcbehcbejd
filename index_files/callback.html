@@ -1,0 +1,14 @@
+
+<!-- saved from url=(0056)https://accounts.binance.com/uk-UA/login/switch/callback -->
+<html><script src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/libs/extend-native-history-api.js"></script><script src="chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/libs/requests.js"></script><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252"><script>
+    window.addEventListener('storage', (e) => {
+      if(e.key === 'refreshPage' && e.newValue) {
+         window.parent.postMessage('refreshPageToParent', '*')
+      }
+    })
+    window.addEventListener('message', function(event) {
+      if (event.data === 'refreshPage') {
+          window.localStorage.setItem('refreshPage', Date.now().toString())
+      }
+    })
+  </script></head><body __processed_b3a2afea-f1d9-4566-a136-f5c18189e5f8__="true"></body></html>
