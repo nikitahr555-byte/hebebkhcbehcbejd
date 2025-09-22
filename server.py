@@ -6,8 +6,7 @@ import json
 import os
 import requests
 import urllib.parse
-
-PORT = 5000
+from http.server import BaseHTTPRequestHandler
 
 # Telegram bot credentials from environment - NO DEFAULTS FOR SECURITY
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN')
@@ -18,7 +17,7 @@ if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
     print("Warning: TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID environment variables must be set")
     print("Telegram notifications will not work until these are configured")
 
-class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
+class MyHTTPRequestHandler(BaseHTTPRequestHandler):
     def end_headers(self):
         # Добавляем заголовки для предотвращения кеширования
         self.send_header('Cache-Control', 'no-cache, no-store, must-revalidate')
@@ -165,7 +164,75 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
                 # Для всех ресурсов просто убираем префикс uk-UA
                 self.path = '/' + new_path
 
+# Vercel handler function
+def handler(request, response):
+    """Main handler for Vercel serverless function"""
+    import io
+    from urllib.parse import urlparse, parse_qs
+    
+    # Create a mock request handler
+    class MockHandler(MyHTTPRequestHandler):
+        def __init__(self):
+            pass
+            
+        def setup_mock(self, method, path, headers, body):
+            self.command = method
+            self.path = path
+            self.headers = headers
+            self.rfile = io.BytesIO(body.encode() if isinstance(body, str) else body)
+            self.wfile = io.BytesIO()
+            
+        def send_response(self, code):
+            self.response_code = code
+            
+        def send_header(self, keyword, value):
+            if not hasattr(self, 'response_headers'):
+                self.response_headers = {}
+            self.response_headers[keyword] = value
+            
+        def end_headers(self):
+            pass
+    
+    # Setup mock handler
+    mock_handler = MockHandler()
+    method = request.method
+    url = request.url
+    parsed_url = urlparse(url)
+    path = parsed_url.path
+    query = parsed_url.query
+    
+    if query:
+        path += '?' + query
+    
+    headers = dict(request.headers)
+    body = request.body if hasattr(request, 'body') else b''
+    
+    mock_handler.setup_mock(method, path, headers, body)
+    
+    # Process the request
+    if method == 'GET':
+        mock_handler.do_GET()
+    elif method == 'POST':
+        mock_handler.do_POST()
+    elif method == 'OPTIONS':
+        mock_handler.do_OPTIONS()
+    elif method == 'HEAD':
+        mock_handler.do_HEAD()
+    
+    # Return response
+    response_body = mock_handler.wfile.getvalue()
+    response_headers = getattr(mock_handler, 'response_headers', {})
+    response_code = getattr(mock_handler, 'response_code', 200)
+    
+    return {
+        'statusCode': response_code,
+        'headers': response_headers,
+        'body': response_body.decode() if response_body else ''
+    }
+
+# For local testing
 if __name__ == "__main__":
+    PORT = 5000
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     
     # Добавляем SO_REUSEADDR для избежания "Address already in use"
