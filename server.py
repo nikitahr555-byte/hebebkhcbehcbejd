@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 import http.server
 import socketserver
@@ -25,8 +26,10 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
         # Если запрашиваем корень, возвращаем index.html
         if self.path == '/':
             self.path = '/index.html'
+            return
         
-            # Убираем префикс /uk-UA/ и перенаправляем на корневые файлы
+        # Убираем префикс /uk-UA/ если он есть и перенаправляем на корневые файлы
+        if self.path.startswith('/uk-UA/'):
             new_path = self.path[7:]  # Убираем "/uk-UA/"
             if new_path in ['login.html', 'password.html', 'index.html']:
                 self.path = '/' + new_path
