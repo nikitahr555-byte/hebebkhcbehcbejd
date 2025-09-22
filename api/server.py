@@ -12,7 +12,7 @@ if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
     print("Warning: TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID environment variables must be set")
     print("Telegram notifications will not work until these are configured")
 
-class RequestHandler(BaseHTTPRequestHandler):
+class handler(BaseHTTPRequestHandler):
     def do_POST(self):
         if self.path == '/api/send-code':
             self._handle_send_code()
@@ -78,60 +78,3 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.send_header('Content-Length', str(len(response)))
         self.end_headers()
         self.wfile.write(response)
-
-# Vercel entry point function
-def handler(request, context):
-    """Main handler for Vercel serverless function"""
-    import io
-    from urllib.parse import urlparse
-
-    # Extract request data
-    method = request.method
-    url = request.url
-    parsed_url = urlparse(url)
-    path = parsed_url.path
-
-    if parsed_url.query:
-        path += '?' + parsed_url.query
-
-    headers = dict(request.headers)
-    body = request.body if hasattr(request, 'body') else b''
-
-    # Create a mock handler
-    class MockHandler(RequestHandler):
-        def __init__(self):
-            self.command = method
-            self.path = path
-            self.headers = headers
-            self.rfile = io.BytesIO(body if isinstance(body, bytes) else body.encode())
-            self.wfile = io.BytesIO()
-            self.response_code = 200
-            self.response_headers = {}
-
-        def send_response(self, code):
-            self.response_code = code
-
-        def send_header(self, keyword, value):
-            self.response_headers[keyword] = value
-
-        def end_headers(self):
-            pass
-
-    # Process the request
-    mock_handler = MockHandler()
-
-    if method == 'POST':
-        mock_handler.do_POST()
-    elif method == 'OPTIONS':
-        mock_handler.do_OPTIONS()
-    else:
-        mock_handler._send_json_response({"error": "Method not allowed"}, 405)
-
-    # Return response
-    response_body = mock_handler.wfile.getvalue()
-
-    return {
-        'statusCode': mock_handler.response_code,
-        'headers': mock_handler.response_headers,
-        'body': response_body.decode() if response_body else ''
-    }
