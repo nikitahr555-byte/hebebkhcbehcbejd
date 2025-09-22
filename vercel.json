@@ -9,12 +9,12 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
+      "src": "/api/send-code",
       "dest": "/server.py"
     },
     {
       "src": "/(.*)",
-      "dest": "/server.py"
+      "dest": "/$1"
     }
   ]
 }
