@@ -2,6 +2,7 @@
 #!/usr/bin/env python3
 import http.server
 import socketserver
+import json
 import os
 
 PORT = 5000
@@ -21,6 +22,22 @@ class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_HEAD(self):
         self._process_path()
         return super().do_HEAD()
+    
+    def do_POST(self):
+        # Обробляємо POST запити до API
+        if self.path.startswith('/bapi/'):
+            self._send_json_error({"error": "API not available", "code": 404})
+        else:
+            self._send_json_error({"error": "Method not allowed", "code": 405})
+    
+    def _send_json_error(self, error_data):
+        """Відправляє JSON відповідь з помилкою"""
+        response = json.dumps(error_data).encode('utf-8')
+        self.send_response(200)  # Відправляємо 200 для уникнення помилок в браузері
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Content-Length', str(len(response)))
+        self.end_headers()
+        self.wfile.write(response)
     
     def _process_path(self):
         # Если запрашиваем корень, возвращаем index.html
